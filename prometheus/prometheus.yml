@@ -8,9 +8,8 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  # Claude Code telemetry
-  # Requires: CLAUDE_CODE_ENABLE_TELEMETRY=1 and OTEL_METRICS_EXPORTER=prometheus
-  - job_name: 'claude-code'
+  # Claude Code telemetry via OTEL Collector
+  - job_name: 'otel-collector'
     static_configs:
-      - targets: ['host.docker.internal:9464']
+      - targets: ['otel-collector:8889']
     scrape_interval: 15s

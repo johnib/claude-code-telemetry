@@ -1,0 +1,58 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+
+  # Ensure service_name is always set
+  resource:
+    attributes:
+      - key: service_name
+        value: claude-code
+        action: upsert
+
+  # Move log record attributes to resource attributes so Loki indexes them as labels
+  transform/logs:
+    log_statements:
+      - context: log
+        statements:
+          - set(resource.attributes["organization_id"], attributes["organization_id"]) where attributes["organization_id"] != nil
+          - set(resource.attributes["user_email"], attributes["user_email"]) where attributes["user_email"] != nil
+          - set(resource.attributes["user_id"], attributes["user_id"]) where attributes["user_id"] != nil
+          - set(resource.attributes["session_id"], attributes["session_id"]) where attributes["session_id"] != nil
+          - set(resource.attributes["event_name"], attributes["event_name"]) where attributes["event_name"] != nil
+          - set(resource.attributes["tool_name"], attributes["tool_name"]) where attributes["tool_name"] != nil
+          - set(resource.attributes["model"], attributes["model"]) where attributes["model"] != nil
+          - set(resource.attributes["success"], attributes["success"]) where attributes["success"] != nil
+          - set(resource.attributes["decision"], attributes["decision"]) where attributes["decision"] != nil
+
+exporters:
+  # Export metrics to Prometheus (collector exposes /metrics endpoint)
+  prometheus:
+    endpoint: 0.0.0.0:8889
+
+  # Export logs to Loki via OTLP
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+
+  # Debug exporter for troubleshooting
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus, debug]
+    logs:
+      receivers: [otlp]
+      processors: [resource, transform/logs, batch]
+      exporters: [otlphttp/loki, debug]
