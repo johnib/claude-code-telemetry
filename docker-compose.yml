@@ -4,9 +4,9 @@ services:
     container_name: otel-collector
     restart: unless-stopped
     ports:
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
-      - "8889:8889"   # Prometheus metrics exporter
+      # - "4317:4317"   # OTLP gRPC - disabled, using OTLP HTTP via CloudFront
+      - "4318:4318"   # OTLP HTTP (via CloudFront HTTPS)
+      - "8889:8889"   # Prometheus metrics exporter (internal)
     volumes:
       - ./otel-collector/config.yaml:/etc/otelcol-contrib/config.yaml:ro
     command: ["--config=/etc/otelcol-contrib/config.yaml"]
