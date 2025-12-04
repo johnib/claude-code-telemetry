@@ -9,7 +9,7 @@ echo "Starting user data script at $(date)"
 dnf update -y
 
 # Install Docker
-dnf install -y docker git
+dnf install -y docker
 systemctl start docker
 systemctl enable docker
 usermod -aG docker ec2-user
@@ -20,11 +20,11 @@ DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/rel
 curl -L "https://github.com/docker/compose/releases/download/$${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
-# Clone repository
-echo "Cloning repository..."
-cd /opt
-git clone ${git_repo_url} ai-observability
-cd ai-observability
+# Download config files from S3
+echo "Downloading config files from S3..."
+mkdir -p /opt/ai-observability
+cd /opt/ai-observability
+aws s3 sync s3://${s3_bucket}/ . --region ${aws_region}
 
 # Create data directories with proper ownership
 echo "Setting up data directories..."

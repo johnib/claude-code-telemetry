@@ -155,6 +155,29 @@ resource "aws_iam_role_policy_attachment" "ssm" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+# S3 access for config files
+resource "aws_iam_role_policy" "s3_access" {
+  name = "${var.project_name}-s3-access"
+  role = aws_iam_role.ec2_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          aws_s3_bucket.configs.arn,
+          "${aws_s3_bucket.configs.arn}/*"
+        ]
+      }
+    ]
+  })
+}
+
 resource "aws_iam_instance_profile" "ec2_profile" {
   name = "${var.project_name}-ec2-profile"
   role = aws_iam_role.ec2_role.name
@@ -181,7 +204,8 @@ resource "aws_instance" "observability" {
   }
 
   user_data = base64encode(templatefile("${path.module}/user_data.sh", {
-    git_repo_url = var.git_repo_url
+    s3_bucket  = aws_s3_bucket.configs.id
+    aws_region = var.aws_region
   }))
 
   tags = {

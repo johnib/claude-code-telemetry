@@ -28,10 +28,6 @@ variable "key_pair_name" {
   default     = null
 }
 
-variable "git_repo_url" {
-  description = "Git repository URL for the observability stack"
-  type        = string
-}
 
 variable "alert_email" {
   description = "Email address for CloudWatch alerts"
