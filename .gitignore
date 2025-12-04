@@ -36,3 +36,17 @@ Temporary Items
 # Built Visual Studio Code Extensions
 *.vsix
 **/data/**
+
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfvars
+terraform/.terraform.lock.hcl
+terraform/crash.log
+terraform/crash.*.log
+terraform/*.tfplan
+terraform/override.tf
+terraform/override.tf.json
+terraform/*_override.tf
+terraform/*_override.tf.json
