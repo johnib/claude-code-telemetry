@@ -1,0 +1,22 @@
+# AWS Region
+aws_region = "eu-west-1"
+
+# Project naming
+project_name = "ai-observability"
+
+# EC2 Instance
+instance_type   = "t3.small"    # Options: t3.small, t3.medium, t3.large
+ebs_volume_size = 50            # GB
+
+# SSH Key (optional - can use SSM Session Manager instead)
+# key_pair_name = "your-key-pair-name"
+
+# Git repository containing the observability stack
+git_repo_url = "https://github.com/YOUR_USERNAME/ai-observability.git"
+
+# Alert configuration
+alert_email = "your-email@example.com"
+
+# SSH access (optional - leave empty to use SSM only)
+# allowed_ssh_cidrs = ["YOUR_IP/32"]
+allowed_ssh_cidrs = []
