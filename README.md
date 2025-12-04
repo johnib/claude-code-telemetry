@@ -11,6 +11,15 @@ A self-hosted observability stack for collecting and visualizing OpenTelemetry m
 | Loki | Log aggregation and storage | 3100 |
 | Grafana | Visualization and dashboards | 3000 |
 
+### Pre-built Grafana Dashboards
+
+Two dashboards are provisioned automatically:
+
+| Dashboard | File | Purpose |
+|-----------|------|---------|
+| Claude Code Usage | `claude-code.json` | Metrics: sessions, tokens, cost, lines of code, active time, code edit decisions |
+| Claude Code Logs | `claude-code-logs.json` | Log analysis with filters for organization, user, session, event, tool, model, success |
+
 ## AWS Deployment
 
 ### Account & Region
@@ -80,11 +89,30 @@ POST https://YOUR_CLOUDFRONT_OTLP_DOMAIN.cloudfront.net/v1/traces
 | Resource | Configuration |
 |----------|---------------|
 | EC2 Instance | `t3.small` (2 vCPU, 2GB RAM) |
-| EBS Volume | 50GB gp3, persists on termination |
+| EBS Volume | 50GB gp3, encrypted, persists on termination |
 | CloudFront | 2 distributions (Grafana + OTLP), HTTPS termination |
-| Backups | Daily EBS snapshots via DLM, 30-day retention |
+| Backups | Daily EBS snapshots via DLM at 3:00 AM UTC, 30-day retention |
 | Monitoring | CloudWatch alarm at 65% CPU, email alerts |
-| Config Storage | S3 bucket with all config files |
+| Config Storage | S3 bucket (private, public access blocked) |
+
+### Security
+
+| Feature | Details |
+|---------|---------|
+| EBS Encryption | Enabled by default |
+| S3 Bucket | Full public access block (all 4 settings enabled) |
+| IAM Permissions | Least-privilege: S3 read-only, SSM Session Manager only |
+| CloudFront | HTTPS enforced, HTTP redirects to HTTPS |
+| Security Group | Restricted ingress (SSH optional via CIDR allowlist) |
+
+### Monitoring & Alerts
+
+**Active alarms:**
+- CPU > 65% for 10 minutes → Email alert
+
+**Optional alarms** (require CloudWatch Agent installation):
+- Memory > 80%
+- Disk usage > 80%
 
 ### Scaling Options
 
