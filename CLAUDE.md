@@ -75,10 +75,16 @@ OTLP Client → CloudFront (HTTPS) → EC2 → OTel Collector → Prometheus (me
 ## Terraform Resources
 
 - **EC2**: t3.small with 50GB gp3 EBS
-- **CloudFront**: 2 distributions (Grafana + OTLP endpoints)
-- **S3**: Config storage, synced to EC2 on startup
+- **CloudFront**: 2 distributions (Grafana + OTLP endpoints) with 60s origin timeout
+- **S3**:
+  - `ai-observability-configs-*`: Config storage, synced to EC2 on startup
+  - `ai-observability-cloudfront-logs-*`: CloudFront access logs (7-day retention)
 - **DLM**: Daily EBS snapshots with 30-day retention
-- **CloudWatch**: CPU alarm at 65%
+- **CloudWatch Alarms**:
+  - CPU > 65%
+  - Disk > 65% (requires CloudWatch agent)
+  - CloudFront Grafana 5xx > 1%
+  - CloudFront OTLP 5xx > 1%
 
 ## Port Reference
 
@@ -90,7 +96,21 @@ OTLP Client → CloudFront (HTTPS) → EC2 → OTel Collector → Prometheus (me
 | 9090 | Prometheus | Internal |
 | 3100 | Loki | Internal |
 
+## OTel Collector Reliability Features
+
+- **Memory Limiter**: 400MB limit with 100MB spike buffer - prevents OOM crashes
+- **Retry on Failure**: Loki exporter retries failed requests (1s initial, 30s max, 5min timeout)
+- **Sending Queue**: 5000 item queue buffers logs during Loki unavailability
+
 ## Log Label Indexing
 
 The OTel Collector promotes these attributes to Loki labels for querying:
 `service_name`, `organization_id`, `user_email`, `user_id`, `session_id`, `event_name`, `tool_name`, `model`, `success`, `decision`
+
+## Pinned Image Versions
+
+All Docker images are pinned to avoid unexpected breaking changes:
+- `otel/opentelemetry-collector-contrib:0.140.0`
+- `grafana/loki:3.6.2`
+- `prom/prometheus:v3.7.3`
+- `grafana/grafana:12.3.0`

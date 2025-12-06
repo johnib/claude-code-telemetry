@@ -102,6 +102,9 @@ resource "aws_security_group" "observability" {
   }
 
   # Grafana (accessed via CloudFront)
+  # NOTE: Cannot use CloudFront prefix list - it has 45 entries, using it twice
+  # would need 90 rules, exceeding AWS default limit of 60 rules per SG.
+  # Options: request limit increase, use AWS WAF, or accept open access.
   ingress {
     from_port   = 3000
     to_port     = 3000

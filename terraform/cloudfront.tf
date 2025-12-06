@@ -15,7 +15,14 @@ resource "aws_cloudfront_distribution" "grafana" {
       https_port             = 443
       origin_protocol_policy = "http-only"
       origin_ssl_protocols   = ["TLSv1.2"]
+      origin_read_timeout    = 60
     }
+  }
+
+  logging_config {
+    bucket          = aws_s3_bucket.cloudfront_logs.bucket_domain_name
+    prefix          = "grafana/"
+    include_cookies = false
   }
 
   default_cache_behavior {
@@ -93,7 +100,14 @@ resource "aws_cloudfront_distribution" "otlp" {
       https_port             = 443
       origin_protocol_policy = "http-only"
       origin_ssl_protocols   = ["TLSv1.2"]
+      origin_read_timeout    = 60
     }
+  }
+
+  logging_config {
+    bucket          = aws_s3_bucket.cloudfront_logs.bucket_domain_name
+    prefix          = "otlp/"
+    include_cookies = false
   }
 
   default_cache_behavior {
