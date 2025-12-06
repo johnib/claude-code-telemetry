@@ -38,7 +38,7 @@ cd terraform && terraform apply
 aws ssm send-command \
   --instance-ids i-EXAMPLE_INSTANCE_ID \
   --document-name "AWS-RunShellScript" \
-  --parameters 'commands=["aws s3 sync s3://ai-observability-configs-YOUR_AWS_ACCOUNT_ID/ /opt/ai-observability/ --region eu-west-1 && cd /opt/ai-observability && docker-compose restart"]' \
+  --parameters 'commands=["aws s3 sync s3://ai-observability-configs-YOUR_AWS_ACCOUNT_ID/ /opt/ai-observability/ --region eu-west-1 --exact-timestamps && cd /opt/ai-observability && docker-compose pull && docker-compose up -d"]' \
   --region eu-west-1
 ```
 
