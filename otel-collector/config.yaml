@@ -7,6 +7,12 @@ receivers:
         endpoint: 0.0.0.0:4318
 
 processors:
+  # Memory limiter to prevent OOM - must be first in pipeline
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 400
+    spike_limit_mib: 100
+
   batch:
     timeout: 1s
     send_batch_size: 1024
@@ -41,6 +47,15 @@ exporters:
   # Export logs to Loki via OTLP
   otlphttp/loki:
     endpoint: http://loki:3100/otlp
+    retry_on_failure:
+      enabled: true
+      initial_interval: 1s
+      max_interval: 30s
+      max_elapsed_time: 300s
+    sending_queue:
+      enabled: true
+      num_consumers: 10
+      queue_size: 5000
 
   # Debug exporter for troubleshooting
   debug:
@@ -50,9 +65,9 @@ service:
   pipelines:
     metrics:
       receivers: [otlp]
-      processors: [batch]
+      processors: [memory_limiter, batch]
       exporters: [prometheus, debug]
     logs:
       receivers: [otlp]
-      processors: [resource, transform/logs, batch]
+      processors: [memory_limiter, resource, transform/logs, batch]
       exporters: [otlphttp/loki, debug]
