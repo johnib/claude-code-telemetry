@@ -6,9 +6,59 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Self-hosted OpenTelemetry observability stack for AI/LLM application monitoring (specifically Claude Code telemetry). Collects metrics and logs via OTLP, stores in Prometheus/Loki, and visualizes in Grafana.
 
+## Local Development
+
+The same `docker-compose.yml` used in production can be run locally for testing.
+
+### Quick Start
+```bash
+docker-compose up -d
+```
+
+### Access URLs (Local)
+
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| Grafana | http://localhost:3000 | admin / admin |
+| Prometheus | http://localhost:9090 | - |
+| Loki | http://localhost:3100 | - |
+| OTLP HTTP | http://localhost:4318 | - |
+
+### Verify Stack Health
+```bash
+# Check container status
+docker-compose ps
+
+# View OTel Collector logs
+docker-compose logs -f otel-collector
+
+# Check service readiness
+curl http://localhost:3100/ready   # Loki
+curl http://localhost:9090/-/ready # Prometheus
+```
+
+### Reset Data (DESTRUCTIVE - USER CONSENT REQUIRED)
+
+This will delete all collected metrics, logs, and Grafana configuration. Only run if you explicitly intend to wipe all data:
+
+```bash
+docker-compose down -v
+rm -rf loki/data prometheus/data grafana/data
+docker-compose up -d
+```
+
+### Local vs Production
+
+| Aspect | Local | Production |
+|--------|-------|------------|
+| OTLP endpoint | http://localhost:4318 | https://YOUR_CLOUDFRONT_OTLP_DOMAIN.cloudfront.net |
+| Grafana | http://localhost:3000 | Via CloudFront |
+| Authentication | None | None (CloudFront public) |
+| Data persistence | Local `./*/data` dirs | EC2 EBS volumes |
+
 ## Common Commands
 
-### Local Development
+### Docker Compose
 ```bash
 # Start the stack
 docker-compose up -d
