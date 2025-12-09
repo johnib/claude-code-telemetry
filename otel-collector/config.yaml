@@ -26,16 +26,23 @@ processors:
 
   # Move log record attributes to resource attributes so Loki indexes them as labels
   # Note: Raw OTLP uses dot notation (user.email), we convert to underscore for Loki labels
+  # Delete originals after copying to prevent Loki from creating duplicate *_extracted fields
   transform/logs:
     log_statements:
       - context: log
         statements:
           - set(resource.attributes["user_email"], attributes["user.email"]) where attributes["user.email"] != nil
+          - delete_key(attributes, "user.email") where attributes["user.email"] != nil
           - set(resource.attributes["event_name"], attributes["event.name"]) where attributes["event.name"] != nil
+          - delete_key(attributes, "event.name") where attributes["event.name"] != nil
           - set(resource.attributes["tool_name"], attributes["tool_name"]) where attributes["tool_name"] != nil
+          - delete_key(attributes, "tool_name") where attributes["tool_name"] != nil
           - set(resource.attributes["model"], attributes["model"]) where attributes["model"] != nil
+          - delete_key(attributes, "model") where attributes["model"] != nil
           - set(resource.attributes["success"], attributes["success"]) where attributes["success"] != nil
+          - delete_key(attributes, "success") where attributes["success"] != nil
           - set(resource.attributes["decision"], attributes["decision"]) where attributes["decision"] != nil
+          - delete_key(attributes, "decision") where attributes["decision"] != nil
 
 exporters:
   # Export metrics to Prometheus (collector exposes /metrics endpoint)
