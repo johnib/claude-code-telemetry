@@ -70,7 +70,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "sum by (event_name) (count_over_time({service_name=\"claude-code\", user_email=~\"$user_email\", event_name=~\"$event_name\", tool_name=~\"$tool_name\", model=~\"$model\", success=~\"$success\"} |~ \"$session_id\" [$__auto]))",
+          "expr": "sum by (event_name) (count_over_time({service_name=\"claude-code\", user_email=~\"$user_email\", event_name=~\"$event_name\", tool_name=~\"$tool_name\", model=~\"$model\", success=~\"$success\"} | session_id =~ `$session_id` [$__auto]))",
           "legendFormat": "{{event_name}}",
           "refId": "A",
           "interval": "30s"
@@ -100,7 +100,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "{service_name=\"claude-code\", user_email=~\"$user_email\", event_name=~\"$event_name\", tool_name=~\"$tool_name\", model=~\"$model\", success=~\"$success\"} |~ \"$session_id\"",
+          "expr": "{service_name=\"claude-code\", user_email=~\"$user_email\", event_name=~\"$event_name\", tool_name=~\"$tool_name\", model=~\"$model\", success=~\"$success\"} | session_id =~ `$session_id`",
           "refId": "A"
         }
       ],
@@ -128,7 +128,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "{service_name=\"claude-code\", event_name=\"user_prompt\", user_email=~\"$user_email\"} |~ \"$session_id\"",
+          "expr": "{service_name=\"claude-code\", event_name=\"user_prompt\", user_email=~\"$user_email\"} | session_id =~ `$session_id`",
           "refId": "A"
         }
       ],
@@ -156,7 +156,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "{service_name=\"claude-code\", event_name=\"tool_result\", success=\"false\", user_email=~\"$user_email\"} |~ \"$session_id\"",
+          "expr": "{service_name=\"claude-code\", event_name=\"tool_result\", success=\"false\", user_email=~\"$user_email\"} | session_id =~ `$session_id`",
           "refId": "A"
         }
       ],
