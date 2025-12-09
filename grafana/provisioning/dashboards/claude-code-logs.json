@@ -70,7 +70,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "sum by (event_name) (count_over_time({service_name=\"claude-code\"} | organization_id=~\"$organization_id\" | user_email=~\"$user_email\" | session_id=~\"$session_id\" | event_name=~\"$event_name\" | tool_name=~\"$tool_name\" | model=~\"$model\" | success=~\"$success\" [$__auto]))",
+          "expr": "sum by (event_name) (count_over_time({service_name=\"claude-code\", user_email=~\"$user_email\", event_name=~\"$event_name\", tool_name=~\"$tool_name\", model=~\"$model\", success=~\"$success\"} |~ \"$session_id\" [$__auto]))",
           "legendFormat": "{{event_name}}",
           "refId": "A",
           "interval": "30s"
@@ -100,7 +100,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "{service_name=\"claude-code\"} | organization_id=~\"$organization_id\" | user_email=~\"$user_email\" | session_id=~\"$session_id\" | event_name=~\"$event_name\" | tool_name=~\"$tool_name\" | model=~\"$model\" | success=~\"$success\"",
+          "expr": "{service_name=\"claude-code\", user_email=~\"$user_email\", event_name=~\"$event_name\", tool_name=~\"$tool_name\", model=~\"$model\", success=~\"$success\"} |~ \"$session_id\"",
           "refId": "A"
         }
       ],
@@ -128,7 +128,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "{service_name=\"claude-code\"} | event_name=\"user_prompt\" | organization_id=~\"$organization_id\" | user_email=~\"$user_email\" | session_id=~\"$session_id\"",
+          "expr": "{service_name=\"claude-code\", event_name=\"user_prompt\", user_email=~\"$user_email\"} |~ \"$session_id\"",
           "refId": "A"
         }
       ],
@@ -156,7 +156,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "{service_name=\"claude-code\"} | event_name=\"tool_result\" | success=\"false\" | organization_id=~\"$organization_id\" | user_email=~\"$user_email\" | session_id=~\"$session_id\"",
+          "expr": "{service_name=\"claude-code\", event_name=\"tool_result\", success=\"false\", user_email=~\"$user_email\"} |~ \"$session_id\"",
           "refId": "A"
         }
       ],
@@ -172,21 +172,8 @@
       {
         "allValue": ".*",
         "current": { "selected": true, "text": "All", "value": "$__all" },
-        "description": "Filter by organization ID",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Organization",
-        "multi": true,
-        "name": "organization_id",
-        "options": [],
-        "query": "a3ac161e-b4c2-447d-989c-7db8462305a0",
-        "queryValue": "",
-        "skipUrlSync": false,
-        "type": "custom"
-      },
-      {
-        "allValue": ".*",
-        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "loki", "uid": "loki" },
+        "definition": "label_values({service_name=\"claude-code\"}, user_email)",
         "description": "Filter by user email",
         "hide": 0,
         "includeAll": true,
@@ -194,29 +181,29 @@
         "multi": true,
         "name": "user_email",
         "options": [],
-        "query": "your-email@example.com",
-        "queryValue": "",
+        "query": "label_values({service_name=\"claude-code\"}, user_email)",
+        "refresh": 1,
+        "regex": "",
         "skipUrlSync": false,
-        "type": "custom"
+        "sort": 1,
+        "type": "query"
       },
       {
-        "allValue": ".*",
-        "current": { "selected": true, "text": "All", "value": "$__all" },
-        "description": "Filter by session ID",
+        "current": { "selected": false, "text": "", "value": "" },
+        "description": "Filter by session ID (exact match or partial)",
         "hide": 0,
-        "includeAll": true,
         "label": "Session",
-        "multi": true,
         "name": "session_id",
         "options": [],
         "query": "",
-        "queryValue": "",
         "skipUrlSync": false,
-        "type": "custom"
+        "type": "textbox"
       },
       {
         "allValue": ".*",
         "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "loki", "uid": "loki" },
+        "definition": "label_values({service_name=\"claude-code\"}, event_name)",
         "description": "Filter by event type",
         "hide": 0,
         "includeAll": true,
@@ -224,10 +211,12 @@
         "multi": true,
         "name": "event_name",
         "options": [],
-        "query": "api_request,tool_use,tool_result,user_prompt,assistant_response,session_init,session_end",
-        "queryValue": "",
+        "query": "label_values({service_name=\"claude-code\"}, event_name)",
+        "refresh": 1,
+        "regex": "",
         "skipUrlSync": false,
-        "type": "custom"
+        "sort": 1,
+        "type": "query"
       },
       {
         "allValue": ".*",

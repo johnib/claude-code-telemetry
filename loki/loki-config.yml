@@ -49,10 +49,7 @@ distributor:
   otlp_config:
     default_resource_attributes_as_index_labels:
       - service_name
-      - organization_id
       - user_email
-      - user_id
-      - session_id
       - event_name
       - tool_name
       - model

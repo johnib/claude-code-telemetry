@@ -25,15 +25,13 @@ processors:
         action: upsert
 
   # Move log record attributes to resource attributes so Loki indexes them as labels
+  # Note: Raw OTLP uses dot notation (user.email), we convert to underscore for Loki labels
   transform/logs:
     log_statements:
       - context: log
         statements:
-          - set(resource.attributes["organization_id"], attributes["organization_id"]) where attributes["organization_id"] != nil
-          - set(resource.attributes["user_email"], attributes["user_email"]) where attributes["user_email"] != nil
-          - set(resource.attributes["user_id"], attributes["user_id"]) where attributes["user_id"] != nil
-          - set(resource.attributes["session_id"], attributes["session_id"]) where attributes["session_id"] != nil
-          - set(resource.attributes["event_name"], attributes["event_name"]) where attributes["event_name"] != nil
+          - set(resource.attributes["user_email"], attributes["user.email"]) where attributes["user.email"] != nil
+          - set(resource.attributes["event_name"], attributes["event.name"]) where attributes["event.name"] != nil
           - set(resource.attributes["tool_name"], attributes["tool_name"]) where attributes["tool_name"] != nil
           - set(resource.attributes["model"], attributes["model"]) where attributes["model"] != nil
           - set(resource.attributes["success"], attributes["success"]) where attributes["success"] != nil

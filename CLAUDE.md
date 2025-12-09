@@ -155,7 +155,9 @@ OTLP Client → CloudFront (HTTPS) → EC2 → OTel Collector → Prometheus (me
 ## Log Label Indexing
 
 The OTel Collector promotes these attributes to Loki labels for querying:
-`service_name`, `organization_id`, `user_email`, `user_id`, `session_id`, `event_name`, `tool_name`, `model`, `success`, `decision`
+`service_name`, `user_email`, `event_name`, `tool_name`, `model`, `success`, `decision`
+
+Note: Raw OTLP uses dot notation (`user.email`, `event.name`) which is transformed to underscore notation for Loki labels.
 
 ## Pinned Image Versions
 
