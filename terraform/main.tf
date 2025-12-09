@@ -196,14 +196,10 @@ resource "aws_instance" "observability" {
   key_name               = var.key_pair_name
 
   root_block_device {
-    volume_size           = var.ebs_volume_size
+    volume_size           = 20  # OS only, data is on separate volume
     volume_type           = "gp3"
     encrypted             = true
-    delete_on_termination = false
-
-    tags = {
-      Name = "${var.project_name}-ebs"
-    }
+    delete_on_termination = true  # OK to delete, data is on separate volume
   }
 
   user_data = base64encode(templatefile("${path.module}/user_data.sh", {
@@ -216,8 +212,32 @@ resource "aws_instance" "observability" {
   }
 
   lifecycle {
-    ignore_changes = [user_data]
+    ignore_changes = [root_block_device]
   }
+}
+
+# Persistent data volume - independent of instance lifecycle
+resource "aws_ebs_volume" "data" {
+  availability_zone = data.aws_availability_zones.available.names[0]
+  size              = var.ebs_volume_size
+  type              = "gp3"
+  encrypted         = true
+
+  tags = {
+    Name = "${var.project_name}-data"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+# Attach data volume to instance
+resource "aws_volume_attachment" "data" {
+  device_name                    = "/dev/xvdf"
+  volume_id                      = aws_ebs_volume.data.id
+  instance_id                    = aws_instance.observability.id
+  stop_instance_before_detaching = true
 }
 
 # Elastic IP

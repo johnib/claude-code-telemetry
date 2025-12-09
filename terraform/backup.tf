@@ -52,7 +52,7 @@ resource "aws_dlm_lifecycle_policy" "ebs_snapshots" {
     }
 
     target_tags = {
-      Name = "${var.project_name}-ebs"
+      Name = "${var.project_name}-data"
     }
   }
 
