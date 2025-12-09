@@ -24,6 +24,16 @@ processors:
         value: claude-code
         action: upsert
 
+  # Move metric data point attributes to resource attributes so Prometheus exports them as labels
+  # Note: Raw OTLP uses dot notation (user.email), we convert to underscore for Prometheus labels
+  transform/metrics:
+    metric_statements:
+      - context: datapoint
+        statements:
+          - set(resource.attributes["user_email"], attributes["user.email"]) where attributes["user.email"] != nil
+          - set(resource.attributes["session_id"], attributes["session.id"]) where attributes["session.id"] != nil
+          - set(resource.attributes["model"], attributes["model"]) where attributes["model"] != nil
+
   # Move log record attributes to resource attributes so Loki indexes them as labels
   # Note: Raw OTLP uses dot notation (user.email), we convert to underscore for Loki labels
   # Delete originals after copying to prevent Loki from creating duplicate *_extracted fields
@@ -70,7 +80,7 @@ service:
   pipelines:
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, transform/metrics, batch]
       exporters: [prometheus, debug]
     logs:
       receivers: [otlp]

@@ -47,7 +47,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "sum(increase(claude_code_session_count_total[$__range])) or vector(0)",
+          "expr": "sum(increase(claude_code_session_count_total{user_email=~\"$user_email\", session_id=~\".*$session_id.*\"}[$__range])) or vector(0)",
           "legendFormat": "Sessions",
           "refId": "A"
         }
@@ -94,7 +94,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "sum(increase(claude_code_token_usage_tokens_total[$__range])) or vector(0)",
+          "expr": "sum(increase(claude_code_token_usage_tokens_total{user_email=~\"$user_email\", session_id=~\".*$session_id.*\", model=~\"$model\"}[$__range])) or vector(0)",
           "legendFormat": "Tokens",
           "refId": "A"
         }
@@ -141,7 +141,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range])) or vector(0)",
+          "expr": "sum(increase(claude_code_cost_usage_USD_total{user_email=~\"$user_email\", session_id=~\".*$session_id.*\", model=~\"$model\"}[$__range])) or vector(0)",
           "legendFormat": "Cost",
           "refId": "A"
         }
@@ -188,7 +188,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "sum(increase(claude_code_lines_of_code_count_total[$__range])) or vector(0)",
+          "expr": "sum(increase(claude_code_lines_of_code_count_total{user_email=~\"$user_email\", session_id=~\".*$session_id.*\"}[$__range])) or vector(0)",
           "legendFormat": "Lines",
           "refId": "A"
         }
@@ -257,7 +257,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "sum(rate(claude_code_token_usage_tokens_total[5m]))",
+          "expr": "sum(rate(claude_code_token_usage_tokens_total{user_email=~\"$user_email\", session_id=~\".*$session_id.*\", model=~\"$model\"}[5m]))",
           "legendFormat": "Token Rate",
           "refId": "A"
         }
@@ -326,7 +326,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "sum(rate(claude_code_cost_usage_USD_total[5m]))",
+          "expr": "sum(rate(claude_code_cost_usage_USD_total{user_email=~\"$user_email\", session_id=~\".*$session_id.*\", model=~\"$model\"}[5m]))",
           "legendFormat": "Cost Rate",
           "refId": "A"
         }
@@ -395,7 +395,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "sum(increase(claude_code_active_time_seconds_total[1h]))",
+          "expr": "sum(increase(claude_code_active_time_seconds_total{user_email=~\"$user_email\", session_id=~\".*$session_id.*\"}[1h]))",
           "legendFormat": "Active Time",
           "refId": "A"
         }
@@ -464,7 +464,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "sum by (decision) (increase(claude_code_code_edit_tool_decision_total[1h]))",
+          "expr": "sum by (decision) (increase(claude_code_code_edit_tool_decision_total{user_email=~\"$user_email\", session_id=~\".*$session_id.*\"}[1h]))",
           "legendFormat": "{{decision}}",
           "refId": "A"
         }
@@ -533,13 +533,13 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "sum(increase(claude_code_session_count_total[1h]))",
+          "expr": "sum(increase(claude_code_session_count_total{user_email=~\"$user_email\", session_id=~\".*$session_id.*\"}[1h]))",
           "legendFormat": "Sessions",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "sum(increase(claude_code_lines_of_code_count_total[1h]))",
+          "expr": "sum(increase(claude_code_lines_of_code_count_total{user_email=~\"$user_email\", session_id=~\".*$session_id.*\"}[1h]))",
           "legendFormat": "Lines of Code",
           "refId": "B"
         }
@@ -552,7 +552,57 @@
   "schemaVersion": 39,
   "tags": ["claude-code", "telemetry"],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "allValue": ".*",
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+        "definition": "label_values(claude_code_cost_usage_USD_total, user_email)",
+        "description": "Filter by user email",
+        "hide": 0,
+        "includeAll": true,
+        "label": "User Email",
+        "multi": true,
+        "name": "user_email",
+        "options": [],
+        "query": "label_values(claude_code_cost_usage_USD_total, user_email)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": { "selected": false, "text": "", "value": "" },
+        "description": "Filter by session ID (partial match supported)",
+        "hide": 0,
+        "label": "Session",
+        "name": "session_id",
+        "options": [],
+        "query": "",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "allValue": ".*",
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+        "definition": "label_values(claude_code_cost_usage_USD_total, model)",
+        "description": "Filter by model",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Model",
+        "multi": true,
+        "name": "model",
+        "options": [],
+        "query": "label_values(claude_code_cost_usage_USD_total, model)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-3h",
