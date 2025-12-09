@@ -164,7 +164,7 @@
       "type": "logs"
     }
   ],
-  "refresh": "10s",
+  "refresh": "1m",
   "schemaVersion": 39,
   "tags": ["claude-code", "logs", "loki"],
   "templating": {
@@ -182,7 +182,7 @@
         "name": "user_email",
         "options": [],
         "query": "label_values({service_name=\"claude-code\"}, user_email)",
-        "refresh": 1,
+        "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -212,7 +212,7 @@
         "name": "event_name",
         "options": [],
         "query": "label_values({service_name=\"claude-code\"}, event_name)",
-        "refresh": 1,
+        "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -231,7 +231,7 @@
         "name": "tool_name",
         "options": [],
         "query": "label_values({service_name=\"claude-code\"}, tool_name)",
-        "refresh": 1,
+        "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -250,7 +250,7 @@
         "name": "model",
         "options": [],
         "query": "label_values({service_name=\"claude-code\"}, model)",
-        "refresh": 1,
+        "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -269,7 +269,7 @@
         "name": "success",
         "options": [],
         "query": "label_values({service_name=\"claude-code\"}, success)",
-        "refresh": 1,
+        "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -278,7 +278,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-3h",
     "to": "now"
   },
   "timepicker": {},
