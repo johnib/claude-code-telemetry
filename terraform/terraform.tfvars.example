@@ -2,7 +2,7 @@
 aws_region = "eu-west-1"
 
 # Project naming
-project_name = "ai-observability"
+project_name = "claude-code-telemetry"
 
 # EC2 Instance
 instance_type   = "t3.small"    # Options: t3.small, t3.medium, t3.large

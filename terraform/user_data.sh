@@ -28,7 +28,7 @@ chmod +x /usr/local/bin/docker-compose
 
 # Mount persistent data volume
 echo "Setting up persistent data volume..."
-DATA_MOUNT="/opt/ai-observability"
+DATA_MOUNT="/opt/claude-code-telemetry"
 
 # Wait for the EBS volume to be attached (Terraform attaches it after instance starts)
 # Device name may be /dev/xvdf or /dev/nvme1n1 depending on instance type
@@ -75,12 +75,12 @@ if ! grep -q "$DATA_UUID" /etc/fstab; then
 fi
 
 # Handle migration from old root-volume-as-data setup
-# If this was previously a root volume, data is at /opt/ai-observability/opt/ai-observability
-if [ -d "$DATA_MOUNT/opt/ai-observability" ] && [ ! -f "$DATA_MOUNT/docker-compose.yml" ]; then
+# If this was previously a root volume, data is at /opt/claude-code-telemetry/opt/claude-code-telemetry
+if [ -d "$DATA_MOUNT/opt/claude-code-telemetry" ] && [ ! -f "$DATA_MOUNT/docker-compose.yml" ]; then
   echo "Detected legacy root volume layout, migrating data..."
   TEMP_MOUNT="/mnt/old-data"
   mkdir -p "$TEMP_MOUNT"
-  cp -a "$DATA_MOUNT/opt/ai-observability/"* "$TEMP_MOUNT/" 2>/dev/null || true
+  cp -a "$DATA_MOUNT/opt/claude-code-telemetry/"* "$TEMP_MOUNT/" 2>/dev/null || true
   # Unmount, reformat, remount
   umount "$DATA_MOUNT"
   mkfs.xfs -f "$DATA_DEVICE"
@@ -110,14 +110,14 @@ docker-compose up -d
 echo "Creating systemd service..."
 cat > /etc/systemd/system/observability.service << 'EOF'
 [Unit]
-Description=AI Observability Stack
+Description=Claude Code Telemetry Stack
 Requires=docker.service
 After=docker.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-WorkingDirectory=/opt/ai-observability
+WorkingDirectory=/opt/claude-code-telemetry
 ExecStart=/usr/local/bin/docker-compose up -d
 ExecStop=/usr/local/bin/docker-compose down
 

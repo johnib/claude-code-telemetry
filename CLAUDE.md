@@ -88,7 +88,7 @@ cd terraform && terraform apply
 aws ssm send-command \
   --instance-ids i-EXAMPLE_INSTANCE_ID \
   --document-name "AWS-RunShellScript" \
-  --parameters 'commands=["aws s3 sync s3://ai-observability-configs-YOUR_AWS_ACCOUNT_ID/ /opt/ai-observability/ --region eu-west-1 --exact-timestamps && cd /opt/ai-observability && docker-compose pull && docker-compose up -d"]' \
+  --parameters 'commands=["aws s3 sync s3://claude-code-telemetry-configs-YOUR_AWS_ACCOUNT_ID/ /opt/claude-code-telemetry/ --region eu-west-1 --exact-timestamps && cd /opt/claude-code-telemetry && docker-compose pull && docker-compose up -d"]' \
   --region eu-west-1
 ```
 
@@ -127,8 +127,8 @@ OTLP Client → CloudFront (HTTPS) → EC2 → OTel Collector → Prometheus (me
 - **EC2**: t3.small with 50GB gp3 EBS
 - **CloudFront**: 2 distributions (Grafana + OTLP endpoints) with 60s origin timeout
 - **S3**:
-  - `ai-observability-configs-*`: Config storage, synced to EC2 on startup
-  - `ai-observability-cloudfront-logs-*`: CloudFront access logs (7-day retention)
+  - `claude-code-telemetry-configs-*`: Config storage, synced to EC2 on startup
+  - `claude-code-telemetry-cloudfront-logs-*`: CloudFront access logs (7-day retention)
 - **DLM**: Daily EBS snapshots with 30-day retention
 - **CloudWatch Alarms**:
   - CPU > 65%

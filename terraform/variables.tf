@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "Project name for resource naming"
   type        = string
-  default     = "ai-observability"
+  default     = "claude-code-telemetry"
 }
 
 variable "instance_type" {

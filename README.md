@@ -1,4 +1,4 @@
-# AI Observability Stack
+# Claude Code Telemetry
 
 A self-hosted observability stack for collecting and visualizing OpenTelemetry metrics and logs, optimized for AI/LLM application monitoring.
 
@@ -156,7 +156,7 @@ This deployment supports **vertical scaling** (scale-up):
 ```bash
 # List available snapshots
 aws ec2 describe-snapshots --owner-ids self \
-  --filters "Name=tag:Name,Values=*ai-observability*" \
+  --filters "Name=tag:Name,Values=*claude-code-telemetry*" \
   --query 'Snapshots[*].[SnapshotId,StartTime,VolumeSize]' \
   --region eu-west-1
 
@@ -194,7 +194,7 @@ terraform apply
 aws ssm send-command \
   --instance-ids i-EXAMPLE_INSTANCE_ID \
   --document-name "AWS-RunShellScript" \
-  --parameters 'commands=["aws s3 sync s3://ai-observability-configs-YOUR_AWS_ACCOUNT_ID/ /opt/ai-observability/ --region eu-west-1 && cd /opt/ai-observability && docker-compose restart"]' \
+  --parameters 'commands=["aws s3 sync s3://claude-code-telemetry-configs-YOUR_AWS_ACCOUNT_ID/ /opt/claude-code-telemetry/ --region eu-west-1 && cd /opt/claude-code-telemetry && docker-compose restart"]' \
   --region eu-west-1
 ```
 
