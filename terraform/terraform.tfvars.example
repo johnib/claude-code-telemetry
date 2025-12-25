@@ -12,7 +12,7 @@ ebs_volume_size = 50            # GB
 # key_pair_name = "your-key-pair-name"
 
 # Git repository containing the observability stack
-git_repo_url = "https://github.com/YOUR_USERNAME/ai-observability.git"
+git_repo_url = "https://github.com/johnib/claude-code-telemetry.git"
 
 # Alert configuration
 alert_email = "your-email@example.com"

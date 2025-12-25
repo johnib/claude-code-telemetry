@@ -211,7 +211,7 @@ aws ssm send-command \
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd ai-observability
+cd claude-code-telemetry
 
 # Create data directories
 mkdir -p prometheus/data loki/data grafana/data
