@@ -1,62 +1,163 @@
 # Claude Code Telemetry
 
-A self-hosted observability stack for collecting and visualizing OpenTelemetry metrics and logs, optimized for AI/LLM application monitoring.
+Track your AI coding costs, token usage, and productivity metrics with a self-hosted observability stack.
 
-## Stack Components
+**What you get:**
+- Real-time cost tracking per user, session, and model
+- Token usage analytics (input, output, cache hits)
+- Tool usage patterns and success rates
+- Session activity and productivity insights
+- 2-year data retention with automated backups
+
+## Quick Start
+
+### 1. Deploy the Stack
+
+**Option A: Local (Docker)**
+```bash
+git clone https://github.com/johnib/claude-code-telemetry.git
+cd claude-code-telemetry
+docker-compose up -d
+```
+
+**Option B: AWS (Terraform)**
+```bash
+cd terraform
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with your settings
+terraform init && terraform apply
+```
+
+### 2. Configure Claude Code
+
+Add to your Claude Code settings file (`~/.claude/settings.json`):
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "OTEL_METRICS_EXPORTER": "otlp",
+    "OTEL_LOGS_EXPORTER": "otlp",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf"
+  }
+}
+```
+
+For AWS deployment, use your CloudFront OTLP endpoint:
+```json
+{
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "OTEL_METRICS_EXPORTER": "otlp",
+    "OTEL_LOGS_EXPORTER": "otlp",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "https://YOUR_CLOUDFRONT_DOMAIN.cloudfront.net",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf"
+  }
+}
+```
+
+**Optional settings:**
+```json
+{
+  "env": {
+    "OTEL_METRIC_EXPORT_INTERVAL": "10000",
+    "OTEL_LOGS_EXPORT_INTERVAL": "5000"
+  }
+}
+```
+
+### 3. View Your Dashboards
+
+Open Grafana at `http://localhost:3000` (or your CloudFront URL).
+
+**Default credentials:** `admin` / `admin`
+
+Two dashboards are pre-configured:
+
+| Dashboard | What it shows |
+|-----------|---------------|
+| **Claude Code Usage** | Cost ($), tokens, sessions, lines of code, active time |
+| **Claude Code Logs** | Tool executions, API requests, user prompts, errors |
+
+---
+
+## What Gets Tracked
+
+### Metrics
+- **Cost**: USD spent per model, user, and session
+- **Tokens**: Input, output, cache read, cache creation
+- **Sessions**: Count and duration
+- **Lines of code**: Written via Claude Code
+- **Active time**: Time spent coding
+
+### Logs (Events)
+- `api_request` - Each Claude API call with model, tokens, cost, duration
+- `tool_decision` - Accept/reject decisions for tool permissions
+- `tool_result` - Tool execution results with success/failure status
+- `user_prompt` - User prompts (optional, requires `OTEL_LOG_USER_PROMPTS=1`)
+
+### Filterable Dimensions
+All data can be filtered by:
+- User email
+- Session ID
+- Model (claude-opus-4, claude-sonnet-4, etc.)
+- Tool name
+- Success/failure status
+
+---
+
+## Architecture
+
+```
+Claude Code  ──OTLP──▶  OTel Collector  ──▶  Prometheus (metrics)
+                                        ──▶  Loki (logs)
+                                        ──▶  Grafana (dashboards)
+```
 
 | Component | Purpose | Port |
 |-----------|---------|------|
-| OpenTelemetry Collector | Receives OTLP data, exports to Prometheus & Loki | 4318 (HTTP) |
-| Prometheus | Time-series metrics storage (730-day retention) | 9090 |
-| Loki | Log aggregation and storage | 3100 |
-| Grafana | Visualization and dashboards | 3000 |
+| OpenTelemetry Collector | Receives OTLP, routes to storage | 4318 |
+| Prometheus | Time-series metrics (730-day retention) | 9090 |
+| Loki | Log aggregation (730-day retention) | 3100 |
+| Grafana | Visualization | 3000 |
 
-### Pre-built Grafana Dashboards
+---
 
-Two dashboards are provisioned automatically:
+## Deployment Options
 
-| Dashboard | File | Purpose |
-|-----------|------|---------|
-| Claude Code Usage | `claude-code.json` | Metrics: sessions, tokens, cost, lines of code, active time, code edit decisions |
-| Claude Code Logs | `claude-code-logs.json` | Log analysis with filters for organization, user, session, event, tool, model, success |
+### Local Development
 
-## AWS Deployment
+Best for: Testing, single-user, or home lab setups.
 
-### Account & Region
+```bash
+# Start
+docker-compose up -d
 
-| Setting | Value |
-|---------|-------|
-| AWS Account | `YOUR_AWS_ACCOUNT_ID` |
-| Region | `eu-west-1` (Ireland) |
-| VPC | `vpc-EXAMPLE_VPC_ID` |
+# Stop
+docker-compose down
 
-### Endpoints
-
-| Service | URL |
-|---------|-----|
-| Grafana | https://YOUR_CLOUDFRONT_GRAFANA_DOMAIN.cloudfront.net |
-| OTLP HTTP | https://YOUR_CLOUDFRONT_OTLP_DOMAIN.cloudfront.net |
-
-**OTLP Endpoints:**
-```
-POST https://YOUR_CLOUDFRONT_OTLP_DOMAIN.cloudfront.net/v1/metrics
-POST https://YOUR_CLOUDFRONT_OTLP_DOMAIN.cloudfront.net/v1/logs
-POST https://YOUR_CLOUDFRONT_OTLP_DOMAIN.cloudfront.net/v1/traces
+# View logs
+docker-compose logs -f
 ```
 
-**Grafana Credentials:** `admin` / `admin` (default password)
+**Endpoints:**
+- Grafana: http://localhost:3000
+- OTLP: http://localhost:4318
 
-### Architecture
+### AWS Production
+
+Best for: Teams, always-on monitoring, secure HTTPS endpoints.
 
 ```
                                     ┌─────────────────────────────────────────┐
-                                    │            AWS eu-west-1                │
+                                    │              AWS Region                 │
                                     │                                         │
 ┌──────────────┐                    │  ┌─────────────┐    ┌───────────────┐   │
-│ OTLP Client  │──HTTPS:443───────────▶│ CloudFront  │───▶│ EC2 t3.small  │   │
+│ Claude Code  │──HTTPS:443───────────▶│ CloudFront  │───▶│ EC2 t3.small  │   │
 └──────────────┘                    │  │ (OTLP)      │    │               │   │
                                     │  └─────────────┘    │ ┌───────────┐ │   │
-┌──────────────┐                    │                     │ │  OTel     │ │   │
+┌──────────────┐                    │                     │ │   OTel    │ │   │
 │   Browser    │──HTTPS:443──────────▶ ┌─────────────┐    │ │ Collector │ │   │
 └──────────────┘                    │  │ CloudFront  │───▶│ └─────┬─────┘ │   │
                                     │  │ (Grafana)   │    │       │       │   │
@@ -84,223 +185,123 @@ POST https://YOUR_CLOUDFRONT_OTLP_DOMAIN.cloudfront.net/v1/traces
                                     └─────────────────────────────────────────┘
 ```
 
-### Infrastructure Details
-
-| Resource | Configuration |
-|----------|---------------|
-| EC2 Instance | `t3.small` (2 vCPU, 2GB RAM) |
-| EBS Volume | 50GB gp3, encrypted, persists on termination |
-| CloudFront | 2 distributions (Grafana + OTLP), HTTPS termination |
-| Backups | Daily EBS snapshots via DLM at 3:00 AM UTC, 30-day retention |
-| Monitoring | CloudWatch alarm at 65% CPU, email alerts |
-| Config Storage | S3 bucket (private, public access blocked) |
-
-### Security
-
-| Feature | Details |
-|---------|---------|
-| EBS Encryption | Enabled by default |
-| S3 Bucket | Full public access block (all 4 settings enabled) |
-| IAM Permissions | Least-privilege: S3 read-only, SSM Session Manager only |
-| CloudFront | HTTPS enforced, HTTP redirects to HTTPS |
-| Security Group | Restricted ingress (SSH optional via CIDR allowlist) |
-
-### Monitoring & Alerts
-
-**Active alarms:**
-- CPU > 65% for 10 minutes → Email alert
-
-**Optional alarms** (require CloudWatch Agent installation):
-- Memory > 80%
-- Disk usage > 80%
-
-### Scaling Options
-
-This deployment supports **vertical scaling** (scale-up):
-
-1. **Resize the instance:**
-   ```bash
-   # Update terraform/terraform.tfvars
-   instance_type = "t3.medium"  # or t3.large, t3.xlarge
-
-   # Apply changes (will stop/start instance)
-   cd terraform
-   terraform apply
-   ```
-
-2. **Increase EBS volume:**
-   ```bash
-   # Update terraform/terraform.tfvars
-   ebs_volume_size = 100  # GB
-
-   # Apply and extend filesystem on EC2
-   terraform apply
-   ```
-
-| Instance Type | vCPU | RAM | Monthly Cost* |
-|---------------|------|-----|---------------|
-| t3.small | 2 | 2GB | ~$15 |
-| t3.medium | 2 | 4GB | ~$30 |
-| t3.large | 2 | 8GB | ~$60 |
-
-*Excludes EBS, CloudFront, and data transfer costs
-
-### Backups & Recovery
-
-**Automated backups:**
-- Daily EBS snapshots at 3:00 AM UTC
-- Incremental (only changed blocks)
-- 30-day retention
-
-**To restore from a snapshot:**
-```bash
-# List available snapshots
-aws ec2 describe-snapshots --owner-ids self \
-  --filters "Name=tag:Name,Values=*claude-code-telemetry*" \
-  --query 'Snapshots[*].[SnapshotId,StartTime,VolumeSize]' \
-  --region eu-west-1
-
-# Create volume from snapshot
-aws ec2 create-volume \
-  --snapshot-id snap-xxxxxxxxx \
-  --availability-zone eu-west-1a \
-  --volume-type gp3 \
-  --region eu-west-1
-```
-
-### Accessing the EC2 Instance
-
-**Via SSM (no SSH key needed):**
-```bash
-aws ssm start-session --target i-EXAMPLE_INSTANCE_ID --region eu-west-1
-```
-
-**Via SSH:**
-```bash
-ssh -i ~/.ssh/id_ed25519 ec2-user@YOUR_EC2_PUBLIC_IP
-```
-
-### Updating Configuration
-
-Config files are stored in S3 and synced to EC2 on startup:
-
-```bash
-# 1. Modify local config files
-# 2. Apply terraform to upload to S3
-cd terraform
-terraform apply
-
-# 3. Sync and restart on EC2
-aws ssm send-command \
-  --instance-ids i-EXAMPLE_INSTANCE_ID \
-  --document-name "AWS-RunShellScript" \
-  --parameters 'commands=["aws s3 sync s3://claude-code-telemetry-configs-YOUR_AWS_ACCOUNT_ID/ /opt/claude-code-telemetry/ --region eu-west-1 && cd /opt/claude-code-telemetry && docker-compose restart"]' \
-  --region eu-west-1
-```
-
----
-
-## Local Development
-
-### Prerequisites
-
-- Docker & Docker Compose
-
-### Quick Start
-
-```bash
-# Clone the repository
-git clone <repo-url>
-cd claude-code-telemetry
-
-# Create data directories
-mkdir -p prometheus/data loki/data grafana/data
-
-# Set permissions
-sudo chown -R 65534:65534 prometheus/data  # prometheus user
-sudo chown -R 10001:10001 loki/data         # loki user
-sudo chown -R 472:472 grafana/data          # grafana user
-
-# Start the stack
-docker-compose up -d
-```
-
-### Local Endpoints
-
-| Service | URL |
-|---------|-----|
-| Grafana | http://localhost:3000 |
-| Prometheus | http://localhost:9090 |
-| Loki | http://localhost:3100 |
-| OTLP HTTP | http://localhost:4318 |
-
-### Sending Test Data
-
-**Metrics:**
-```bash
-curl -X POST http://localhost:4318/v1/metrics \
-  -H "Content-Type: application/json" \
-  -d '{"resourceMetrics":[]}'
-```
-
-**Logs:**
-```bash
-curl -X POST http://localhost:4318/v1/logs \
-  -H "Content-Type: application/json" \
-  -d '{"resourceLogs":[]}'
-```
-
-### Stopping the Stack
-
-```bash
-docker-compose down
-```
-
-To also remove data volumes:
-```bash
-docker-compose down -v
-rm -rf prometheus/data loki/data grafana/data
-```
-
----
-
-## Terraform Management
-
-### Prerequisites
-
-- Terraform >= 1.0
-- AWS CLI configured with appropriate credentials
-
-### Initialize
+**What Terraform creates:**
+- EC2 t3.small (~$15/mo) with Docker
+- CloudFront HTTPS endpoints for Grafana and OTLP
+- 50GB encrypted EBS with daily snapshots
+- CloudWatch alerts for CPU and disk usage
 
 ```bash
 cd terraform
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Edit `terraform.tfvars`:
+```hcl
+aws_region      = "eu-west-1"
+project_name    = "claude-code-telemetry"
+instance_type   = "t3.small"
+ebs_volume_size = 50
+alert_email     = "your-email@example.com"
+```
+
+Deploy:
+```bash
 terraform init
-```
-
-### Plan & Apply
-
-```bash
-terraform plan
 terraform apply
 ```
 
-### Destroy
-
-```bash
-terraform destroy
+Terraform outputs your endpoints:
 ```
-
-**Note:** EBS volume is configured with `delete_on_termination = false` to protect data. Manually delete if needed.
+grafana_url = "https://d1234567890.cloudfront.net"
+otlp_http_endpoint = "https://d0987654321.cloudfront.net"
+```
 
 ---
 
-## Cost Estimate
+## Cost Estimate (AWS)
 
-| Resource | Monthly Cost |
-|----------|--------------|
+| Resource | Monthly |
+|----------|---------|
 | EC2 t3.small | ~$15 |
 | EBS 50GB gp3 | ~$4 |
-| CloudFront (light usage) | ~$1-5 |
-| EBS Snapshots | ~$1-2 |
+| CloudFront | ~$1-5 |
+| Snapshots | ~$1-2 |
 | **Total** | **~$21-26** |
+
+Scale up by changing `instance_type` to `t3.medium` (~$30/mo) or `t3.large` (~$60/mo).
+
+---
+
+## Security Considerations
+
+This stack is designed for **internal/trusted use**:
+
+- CloudFront endpoints are public (no auth by default)
+- Grafana uses default admin credentials
+- OTLP endpoint accepts data from anyone who knows the URL
+
+**For production teams**, consider:
+1. Change Grafana admin password immediately
+2. Add CloudFront WAF rules or IP allowlists
+3. Use VPN or private endpoints for sensitive deployments
+4. Review what telemetry data you're comfortable storing
+
+---
+
+## Telemetry Schema
+
+See [docs/claude-code-telemetry-schema.md](docs/claude-code-telemetry-schema.md) for the complete OTLP schema reference.
+
+---
+
+## Maintenance
+
+### Update Configuration
+
+```bash
+# Edit config files locally, then:
+cd terraform && terraform apply
+
+# Restart services on EC2:
+aws ssm start-session --target INSTANCE_ID --region eu-west-1
+# Then run: cd /opt/claude-code-telemetry && docker-compose pull && docker-compose up -d
+```
+
+### Backups
+
+- **Automatic**: Daily EBS snapshots, 30-day retention
+- **Manual**: Access via AWS Console or `aws ec2 describe-snapshots`
+
+### Scaling
+
+```bash
+# In terraform.tfvars:
+instance_type = "t3.medium"  # More RAM for larger workloads
+ebs_volume_size = 100        # More storage
+
+terraform apply
+```
+
+---
+
+## Troubleshooting
+
+**No data appearing?**
+1. Check Claude Code settings are correct
+2. Verify OTLP endpoint is reachable: `curl -X POST http://localhost:4318/v1/metrics`
+3. Check OTel Collector logs: `docker-compose logs otel-collector`
+
+**High memory usage?**
+- OTel Collector has a 400MB memory limit with automatic backpressure
+- Consider scaling to t3.medium if you have many concurrent users
+
+**Dashboard not loading?**
+- Grafana may take 30-60 seconds to start on first boot
+- Check: `docker-compose logs grafana`
+
+---
+
+## License
+
+MIT
